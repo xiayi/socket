@@ -2,17 +2,24 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Title</title>
+    <title>push test</title>
+    <script src="http://d.56show.com/dianbookupload/static/business/js/jquery.min.js"></script>
+    <script>
+
+    </script>
 </head>
 <body>
+<div id="msglist" style="border:1px solid #ff0000;">
+
+</div>
 <script>
-    var ws = new WebSocket('ws://127.0.0.1:1234');
+    var ws = new WebSocket('ws://112.124.112.174:1234');
     ws.onopen = function(){
         var uid = 'uid1';
         ws.send(uid);
     };
     ws.onmessage = function(e){
-        alert(e.data);
+        $("#msglist").append(e.data);
     };
 </script>
 </body>
