@@ -5,22 +5,26 @@
     <title>push test</title>
     <script src="http://d.56show.com/dianbookupload/static/business/js/jquery.min.js"></script>
     <script>
+        var ws = new WebSocket('ws://112.124.112.174:1234');
+        ws.onopen = function(){
+            ws.send(xy.getUrlParam("uid"));
+        };
+        ws.onmessage = function(e){
+            $("#msglist").append("<div>"+e.data+"</div>");
+        };
 
+        var xy = {};
+        //获取url中的参数
+        xy.getUrlParam = function (name) {
+            var reg = new RegExp("(^|&)" + name + "=([^&]*)(&|$)"); //构造一个含有目标参数的正则表达式对象
+            var r = window.location.search.substr(1).match(reg);  //匹配目标参数
+            if (r != null) return decodeURIComponent(r[2]); return null; //返回参数值
+        }
     </script>
 </head>
 <body>
-<div id="msglist" style="border:1px solid #ff0000;">
+<div id="msglist" style="border:1px solid #ff0000; padding: 10px;">
 
 </div>
-<script>
-    var ws = new WebSocket('ws://112.124.112.174:1234');
-    ws.onopen = function(){
-        var uid = 'uid1';
-        ws.send(uid);
-    };
-    ws.onmessage = function(e){
-        $("#msglist").append(e.data);
-    };
-</script>
 </body>
 </html>
