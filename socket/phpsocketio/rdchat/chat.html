@@ -1,0 +1,187 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>聊天实例</title>
+  <script src="http://d.56show.com/dianbookupload/static/business/js/jquery.min.js"></script>
+  <script src='//cdn.bootcss.com/socket.io/1.3.7/socket.io.js'></script>
+  <script>
+    xy = {};
+    //获取url中的参数
+    xy.getUrlParam = function (name) {
+      var reg = new RegExp("(^|&)" + name + "=([^&]*)(&|$)");
+      var r = window.location.search.substr(1).match(reg);
+      if (r != null) return decodeURIComponent(r[2]); return null;
+    }
+
+    //获取当前时间戳
+    xy.gettimestamp = function() {
+      var timestamp = parseInt(new Date().getTime() / 1000);
+      return timestamp;
+    }
+
+    xy.connect = function(roomid,uid,nickname,avatar) {
+      //连接服务端
+      var socket = io('http://vdown.56show.com:2020');
+
+      //连接断开
+      socket.on('disconnect', function() {
+        xy.connect(roomid,uid,nickname,avatar);
+      });
+
+      //服务端触发-离开房间
+      socket.on('userleft', function(msg) {
+        $("#"+roomid+" .msglist").append('<div>'+msg.user.nickname+' <span style="font-size:12px; color: #cccccc;">离开房间</span></div>');
+        $("#"+roomid+" .onlinecount").html(msg.usercount);
+
+        $.each($("#"+roomid+" .usrlist div"), function(i,item){
+          if($(item).attr("uid") == msg.user.uid){
+            $(item).remove();
+          };
+        });
+
+      });
+
+      //服务端触发-进入房间
+      socket.on('userentered', function(msg){
+        $("#"+roomid+" .msglist").append('<div>'+msg.user.nickname+' <span style="font-size:12px; color: #cccccc;">进入房间</span></div>');
+        $("#"+roomid+" .onlinecount").html(msg.usercount);
+
+        var curulist = [];
+        $.each($("#"+roomid+" .usrlist div"), function(i,item){
+          curulist.push($(item).html());
+        });
+        if($.inArray(msg.user.nickname, curulist) == -1){
+          ulist = '<div uid="'+msg.user.uid+'">'+msg.user.nickname+'</div>';
+          $("#"+roomid+" .usrlist").prepend(ulist);
+        }
+
+      });
+
+      //触发服务端-发起登录
+      socket.emit('enter', {"roomid":roomid,"user":{"uid":uid,"nickname":nickname,"avatar":avatar}});
+
+      //服务端触发-登录成功
+      socket.on('entered', function(msg){
+        console.log('entered' + JSON.stringify(msg));
+        $("#"+roomid+" .onlinecount").html(msg.usercount);
+
+        var ulist="";
+        $.each(msg.userlist, function(i,item){
+          ulist += '<div uid="'+item.uid+'">'+item.nickname+'</div>';
+        })
+        $("#"+roomid+" .usrlist").html(ulist);
+
+      });
+
+      //服务端触发-收到数据
+      socket.on('sendmsg', function(msg){
+        $("#"+roomid+" .msglist").append("<div>"+msg.user.nickname+" 说："+msg.data.content.content+"</div>");
+      });
+
+      //发送数据
+      $(document).on("click","#"+roomid+" .send_bt",function(event) {
+        sendok = socket.emit('sendmsg', {"roomid":roomid,"user":{"uid":uid,"nickname":nickname,"avatar":avatar},"data":{"type": "sendmsg","content": {"content":$("#"+roomid+" .msg").val()},"time":xy.gettimestamp()}});
+        if(typeof(sendok) == "object"){
+          $("#"+roomid+" .msg").val("");
+        }else{
+          alert("发送失败");
+        }
+
+      });
+
+    }
+
+    $(function(){
+      var roomid = xy.getUrlParam("roomid");
+      var uid = xy.getUrlParam("uid");
+      var nickname = xy.getUrlParam("nickname");
+      var avatar = xy.getUrlParam("avatar");
+      $(".rid").hide();
+      $("#"+roomid).show();
+      xy.connect(roomid,uid,nickname,avatar);
+    });
+
+  </script>
+</head>
+<body>
+<p>
+  <a href="http://vdown.56show.com/chat.html?roomid=rid001&uid=uid001&nickname=miles1&avatar=http://d.56show.com/boy_01.png" target="_blank">miles1</a>
+  <a href="http://vdown.56show.com/chat.html?roomid=rid001&uid=uid002&nickname=miles2&avatar=http://d.56show.com/boy_02.png" target="_blank">miles2</a>
+  <a href="http://vdown.56show.com/chat.html?roomid=rid001&uid=uid003&nickname=miles3&avatar=http://d.56show.com/boy_03.png" target="_blank">miles3</a>
+  <a href="http://vdown.56show.com/chat.html?roomid=rid001&uid=uid004&nickname=miles4&avatar=http://d.56show.com/boy_04.png" target="_blank">miles4</a>
+  <a href="http://vdown.56show.com/chat.html?roomid=rid001&uid=uid005&nickname=miles5&avatar=http://d.56show.com/boy_05.png" target="_blank">miles5</a>
+</p>
+<p>
+  <a href="http://vdown.56show.com/chat.html?roomid=rid002&uid=uid006&nickname=xiayi1&avatar=http://d.56show.com/boy_01.png" target="_blank">xiayi1</a>
+  <a href="http://vdown.56show.com/chat.html?roomid=rid002&uid=uid007&nickname=xiayi2&avatar=http://d.56show.com/boy_02.png" target="_blank">xiayi2</a>
+  <a href="http://vdown.56show.com/chat.html?roomid=rid002&uid=uid008&nickname=xiayi3&avatar=http://d.56show.com/boy_03.png" target="_blank">xiayi3</a>
+  <a href="http://vdown.56show.com/chat.html?roomid=rid002&uid=uid009&nickname=xiayi4&avatar=http://d.56show.com/boy_04.png" target="_blank">xiayi4</a>
+  <a href="http://vdown.56show.com/chat.html?roomid=rid002&uid=uid010&nickname=xiayi5&avatar=http://d.56show.com/boy_05.png" target="_blank">xiayi5</a>
+</p>
+<style>
+  .rid{
+    width: 500px;
+  }
+  .rid h1{
+    width: 500px;
+  }
+  .rid_tit{
+    width: 500px;
+  }
+  .msgbox{
+    width: 500px;
+    clear: both;
+  }
+  .msglist{
+    width: 400px;
+    background: #f1f4f7;
+    float: left;
+  }
+  .usrlist{
+    width: 80px;
+    background: #f1f4f7;
+    float: right;
+  }
+  .sendbox{
+    width: 500px;
+    clear: both;
+  }
+</style>
+
+<div class="rid" id="rid001">
+  <h1>房间：rid001</h1>
+  <div class="rid_tit">在线：<span class="onlinecount"></span>人</div>
+  <div class="msgbox">
+    <div class="msglist">
+
+    </div>
+    <div class="usrlist">
+
+    </div>
+  </div>
+  <div class="sendbox">
+    <input class="msg" value=""/>
+    <button class="send_bt">发送</button>
+  </div>
+</div>
+
+<div class="rid" id="rid002">
+  <h1>房间：rid002</h1>
+  <div class="rid_tit">在线：<span class="onlinecount"></span>人</div>
+  <div class="msgbox">
+    <div class="msglist">
+
+    </div>
+    <div class="usrlist">
+
+    </div>
+  </div>
+  <div class="sendbox">
+    <input class="msg" value=""/>
+    <button class="send_bt">发送</button>
+  </div>
+</div>
+
+</body>
+</html>

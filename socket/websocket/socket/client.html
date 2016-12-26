@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <script src="http://d.56show.com/upload/Apps/Admin/js/jquery.min.js"></script>
+</head>
+<body>
+
+    <script type="text/javascript">
+        $(function(){
+            var wsUri = "ws://192.168.1.239:9003/websocket/server.php";
+            websocket = new WebSocket(wsUri);
+            websocket.onopen = function(ev) {
+                $("#message").append("开始");
+            }
+
+            $("#sendButton").on("click",function(){
+                websocket.send("111111111111");
+            });
+
+            //#### Message received from server?
+            websocket.onmessage = function(ev) {
+                $("#message").append(ev.data);
+            };
+
+            websocket.onerror	= function(ev){
+                $("#message").append("出错");
+            };
+            websocket.onclose 	= function(ev){
+                $("#message").append("关闭");
+            };
+
+        })
+
+</script>
+
+
+<div id="message"></div>
+<button id="sendButton" >Send</button>
+</body>
+</html>
